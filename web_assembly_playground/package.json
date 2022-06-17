@@ -1,0 +1,16 @@
+{
+  "name": "web_assembly_playground",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "wasm": "wasm-pack build ../wasm-rust --target web"
+  },
+  "devDependencies": {
+    "typescript": "^4.7.3",
+    "vite": "^2.9.9",
+    "vite-plugin-wasm-pack": "^0.1.12"
+  }
+}
