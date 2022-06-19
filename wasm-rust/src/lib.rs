@@ -1,9 +1,6 @@
 mod utils;
-
-use std::thread;
-use std::time::Duration;
 use wasm_bindgen::prelude::*;
-extern crate web_sys;
+pub use wasm_bindgen_rayon::init_thread_pool;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -12,34 +9,12 @@ extern crate web_sys;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern {
-    fn alert(s: &str);
-}
-
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
-
-#[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, wasm-rust!");
-}
-
-#[wasm_bindgen]
 pub fn do_multi_thead_task(num: i32) {
-
     // let js_string = JsValue::from_str("Hello using web-sys");
+    // web_sys::console::log_1(&(js_string.into()));
 
-    // let handler = thread::spawn( move || {
-        for i in 0..num {
-            let message = format!("hi number {} from the spawned thread", i);
-            web_sys::console::log_1(&(message.into()));
-            // thread::sleep(Duration::from_millis(1));
-        }
-    // });
-    // //
-    // handler.join().unwrap();
-    // Ok(())
+    rayon::spawn(move || {
+        let js_string = JsValue::from_str("Hello using web-sys");
+        web_sys::console::log_1(&(js_string.into()));
+    });
 }
