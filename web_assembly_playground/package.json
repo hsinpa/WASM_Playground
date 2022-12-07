@@ -5,16 +5,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "wasm": "wasm-pack -v build ../wasm-rust --out-dir ../web_assembly_playground/wasm --target web",
-    "wasm_old": "wasm-pack build ../wasm-rust --out-dir ../web_assembly_playground/wasm --target no-modules"
+    "preview": "vite preview"
   },
   "devDependencies": {
     "typescript": "^4.7.3",
-    "vite": "^2.9.9",
-    "wasm_rust": "file:./wasm"
+    "vite": "^2.9.9"
   },
   "dependencies": {
-    "comlink": "^4.3.1"
+    "gl-matrix": "^3.4.3"
   }
 }
