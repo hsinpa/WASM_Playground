@@ -69,14 +69,14 @@ export default class PhysicsParticle {
         let last_pos_3d = vec3.fromValues(lastPosition[0], lastPosition[1], 0);
         let last_velocity_3d = vec3.fromValues(-lastVelocity[0], -lastVelocity[1], 0);
         let particle_pos_3d = vec3.fromValues(particle.position[0], particle.position[1], 0);
-        let collision_value = PlaneEquationDetection(this.m_floor.position, this.m_floor.normal, particle_pos_3d);
+        let collision_value = PlaneEquationDetection(this.m_floor.position, this.m_floor.normal, particle_pos_3d, particle.radius);
 
         if (collision_value < 0) {
             let t = IntersectionPlane(this.m_floor.position, this.m_floor.normal, last_pos_3d, last_velocity_3d);
             let collision_point = vec3.add(last_pos_3d, last_pos_3d, vec3.scale(last_velocity_3d, last_velocity_3d, t));
 
             particle.position[0] = collision_point[0];
-            particle.position[1] = collision_point[1];
+            particle.position[1] = collision_point[1] - particle.radius;
 
             particle.velocity = this.ProcessCollisionForce(particle, this.m_floor);
         }

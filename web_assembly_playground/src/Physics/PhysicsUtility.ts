@@ -1,8 +1,8 @@
 import { vec3 } from "gl-matrix";
 
-export const PlaneEquationDetection = function(plane_position: vec3, plane_normal: vec3, target: vec3) {
+export const PlaneEquationDetection = function(plane_position: vec3, plane_normal: vec3, target: vec3, target_size:number) {
     let dist = vec3.sub(vec3.create(), target, plane_position);
-    return vec3.dot(dist, plane_normal);
+    return vec3.dot(dist, plane_normal) - target_size;
 }
 
 export const IntersectionPlane = function(plane_position: vec3, plane_normal: vec3, target_pos: vec3, target_normal: vec3) {
