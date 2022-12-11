@@ -1,25 +1,36 @@
 import { vec2, vec3 } from "gl-matrix";
 import SimpleCanvas from "../Hsinpa/SimpleCanvas";
-import {Particle2DStruct, PlaneStruct} from './PhysicsStruct';
-import {PlaneEquationDetection, IntersectionPlane} from './PhysicsUtility';
+import {Particle2DStruct, PlaneStruct, FlipperStruct} from './PhysicsStruct';
+import {PlaneEquationDetection, IntersectionPlane, Clamp, RandomRange} from './PhysicsUtility';
+import {CanvasHelper, RoundRectStruct} from '../Canvas/CanvasHelper';
+import {InputHandler, InputMovementCallback} from '../Hsinpa/Input/InputHandler';
 
 export default class PhysicsParticle {
     private m_simple_canvas: SimpleCanvas;
     private m_particles: Particle2DStruct[];
     private m_floor: PlaneStruct;
+    private m_canvas_helper: CanvasHelper;
+    private m_fliper_demo1: FlipperStruct;
+    private m_input_handler : InputHandler;
+
     public TimeStamp : number = 0;
     public DeltaTime: number = 0;
 
     public constructor(canvas_dom_query: string) {
         this.m_simple_canvas = new SimpleCanvas(canvas_dom_query);
-        this.m_particles = this.PrepareParticles(100, this.m_simple_canvas.ScreenWidth, this.m_simple_canvas.ScreenHeight);
+        this.m_canvas_helper = new CanvasHelper(this.m_simple_canvas.Context);
+        this.m_particles = this.PrepareParticles(1, this.m_simple_canvas.ScreenWidth, this.m_simple_canvas.ScreenHeight);
         this.m_floor = {position: vec3.fromValues(0,this.m_simple_canvas.ScreenHeight, 0), normal: vec3.fromValues(0, -1, 0)};
+        this.m_fliper_demo1 = { shape: new RoundRectStruct(10, 100, 10, 90, -0.1, 0.8), angular_velocity: 0.0001};
+        this.m_input_handler = new InputHandler();
+        this.m_input_handler.RegisterMovementEvent(null);
         console.log(`Canvas height ${this.m_simple_canvas.ScreenWidth}, width ${this.m_simple_canvas.ScreenHeight}`)
         
         window.requestAnimationFrame(this.Render.bind(this));
     }
 
     public Render(timestamp: number) {
+        this.m_input_handler.OnUpdate();
         this.DeltaTime = (timestamp - this.TimeStamp) * 0.001;
         this.TimeStamp = timestamp;
 
@@ -30,6 +41,9 @@ export default class PhysicsParticle {
             this.Simulate(this.m_particles[i]);
             this.DrawSphere(this.m_simple_canvas.Context, this.m_particles[i].position, this.m_particles[i].radius);        
         }
+        
+        this.m_canvas_helper.DrawRoundRect(this.m_fliper_demo1.shape);
+        this.SimulateFlipper(this.m_input_handler.MovementDirection[0], this.m_input_handler.MovementDirection[1]);
 
         window.requestAnimationFrame(this.Render.bind(this));
     }
@@ -64,19 +78,29 @@ export default class PhysicsParticle {
         this.ProcessCollision(particle, lastPosition, lastVelocity);
     }
 
+    private SimulateFlipper(left_flipper: number, right_flipper: number) {
+        let angle = this.m_fliper_demo1.shape.angle + (left_flipper * this.m_fliper_demo1.angular_velocity * this.TimeStamp);
+        angle = Clamp(angle, this.m_fliper_demo1.shape.max_angle, this.m_fliper_demo1.shape.rest_angle);
+
+        this.m_fliper_demo1.shape.angle = angle;
+
+    }
+
     private ProcessCollision(particle: Particle2DStruct, lastPosition: vec2, lastVelocity: vec2) {
+
         lastVelocity = vec2.normalize(lastVelocity, lastVelocity);
-        let last_pos_3d = vec3.fromValues(lastPosition[0], lastPosition[1], 0);
         let last_velocity_3d = vec3.fromValues(-lastVelocity[0], -lastVelocity[1], 0);
         let particle_pos_3d = vec3.fromValues(particle.position[0], particle.position[1], 0);
-        let collision_value = PlaneEquationDetection(this.m_floor.position, this.m_floor.normal, particle_pos_3d, particle.radius);
+        let collision_value = PlaneEquationDetection(this.m_floor.position, this.m_floor.normal, particle_pos_3d);
 
-        if (collision_value < 0) {
-            let t = IntersectionPlane(this.m_floor.position, this.m_floor.normal, last_pos_3d, last_velocity_3d);
-            let collision_point = vec3.add(last_pos_3d, last_pos_3d, vec3.scale(last_velocity_3d, last_velocity_3d, t));
+        let last_pos_3d = vec3.fromValues(lastPosition[0], lastPosition[1] , 0);
 
-            particle.position[0] = collision_point[0];
-            particle.position[1] = collision_point[1] - particle.radius;
+        if (collision_value < particle.radius) {
+            // let t = IntersectionPlane(this.m_floor.position, this.m_floor.normal, last_pos_3d, last_velocity_3d);
+            let collision_point = vec3.add(last_pos_3d, last_pos_3d, vec3.scale(last_velocity_3d, last_velocity_3d, particle.radius - collision_value));
+
+             particle.position[0] = collision_point[0];
+             particle.position[1] = collision_point[1];
 
             particle.velocity = this.ProcessCollisionForce(particle, this.m_floor);
         }
@@ -103,7 +127,7 @@ export default class PhysicsParticle {
             let randomPositionY = (Math.random() * screen_height);
 
             let particle : Particle2DStruct = {
-                velocity : vec2.fromValues(0,0), 
+                velocity : vec2.fromValues( RandomRange(1, 2),0), 
                 acceleration: vec2.fromValues(0,0), 
                 position: vec2.fromValues(randomPositionX, randomPositionY), 
                 radius: 10,
