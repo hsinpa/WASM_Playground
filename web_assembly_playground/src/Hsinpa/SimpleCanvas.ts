@@ -34,8 +34,8 @@ class SimpleCanvas {
     }
 
     public SetCanvasToSceenSize(canvas : HTMLCanvasElement) {
-        canvas.width = this._canvasDom.clientWidth;
-        canvas.height = this._canvasDom.clientHeight;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
 }
 

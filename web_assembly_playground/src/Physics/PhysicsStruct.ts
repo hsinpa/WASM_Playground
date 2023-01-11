@@ -24,3 +24,8 @@ export interface FlipperStruct {
     shape: RoundRectStruct,
     angular_velocity: number,
 }
+
+export interface WireStruct {
+    position: vec2,
+    radius: number,
+}

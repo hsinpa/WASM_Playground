@@ -12,6 +12,7 @@
     "vite": "^2.9.9"
   },
   "dependencies": {
-    "gl-matrix": "^3.4.3"
+    "gl-matrix": "^3.4.3",
+    "random-js": "^2.1.0"
   }
 }

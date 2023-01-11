@@ -21,7 +21,7 @@ export class RoundRectStruct {
         this.length = length;
         this.angle = rest_angle;
         this.rest_angle = rest_angle;
-        this.max_angle = Math.abs(max_angle);
+        this.max_angle = (max_angle);
         this.sign = Math.sign(max_angle);
 
         this.m_position_vector = vec2.fromValues(x, y);
@@ -54,7 +54,7 @@ export class CanvasHelper {
         // this.m_ctx.fillRect(100, 0, 80, 20);
 
         this.m_ctx.translate(roundRect.x + roundRect.radius, roundRect.y);        
-        this.m_ctx.rotate( -(roundRect.sign * roundRect.angle));
+        this.m_ctx.rotate( -(roundRect.angle));
         this.m_ctx.fillStyle = "green";
         this.m_ctx.fillRect(0, -roundRect.radius, roundRect.length, roundRect.radius * 2);
 
@@ -64,7 +64,7 @@ export class CanvasHelper {
         this.m_ctx.resetTransform();			
     }
 
-    DrawSphere(x, y, radius)
+    DrawSphere(x : number, y : number, radius: number)
 	{
 		this.m_ctx.beginPath();			
 		this.m_ctx.arc(
@@ -73,4 +73,26 @@ export class CanvasHelper {
         this.m_ctx.closePath();
         this.m_ctx.fill();
 	}
+
+    DrawLine(point_a : vec2, point_b : vec2, thickness: number) {
+        this.m_ctx.lineWidth = thickness;
+
+        this.m_ctx.beginPath();
+        this.m_ctx.moveTo(point_a[0], point_a[1]);
+        this.m_ctx.lineTo(point_b[0], point_b[1]);
+        this.m_ctx.stroke();
+    }
+
+    DrawWire(position: vec2, radius: number, border: number ) {
+        let x = position[0];
+        let y = position[1];
+
+        this.m_ctx.lineWidth = border;
+        this.m_ctx.beginPath();
+        this.m_ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        this.m_ctx.strokeStyle = "blue";
+        this.m_ctx.stroke();
+        
+        this.m_ctx.lineWidth = 1;
+    }
 }

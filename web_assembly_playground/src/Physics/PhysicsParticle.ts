@@ -1,6 +1,6 @@
 import { vec2, vec3 } from "gl-matrix";
 import SimpleCanvas from "../Hsinpa/SimpleCanvas";
-import {Particle2DStruct, PlaneStruct, FlipperStruct} from './PhysicsStruct';
+import {Particle2DStruct, PlaneStruct, FlipperStruct, WireStruct} from './PhysicsStruct';
 import {PlaneEquationDetection, IntersectionPlane, Clamp, RandomRange} from './PhysicsUtility';
 import {CanvasHelper, RoundRectStruct} from '../Canvas/CanvasHelper';
 import {InputHandler, InputMovementCallback} from '../Hsinpa/Input/InputHandler';
@@ -10,8 +10,11 @@ export default class PhysicsParticle {
     private m_particles: Particle2DStruct[];
     private m_floor: PlaneStruct;
     private m_canvas_helper: CanvasHelper;
-    private m_fliper_demo1: FlipperStruct;
+    private m_fliper_left: FlipperStruct;
+    private m_fliper_right: FlipperStruct;
+
     private m_input_handler : InputHandler;
+    private m_wire_struct : WireStruct;
 
     public TimeStamp : number = 0;
     public DeltaTime: number = 0;
@@ -20,8 +23,15 @@ export default class PhysicsParticle {
         this.m_simple_canvas = new SimpleCanvas(canvas_dom_query);
         this.m_canvas_helper = new CanvasHelper(this.m_simple_canvas.Context);
         this.m_particles = this.PrepareParticles(1, this.m_simple_canvas.ScreenWidth, this.m_simple_canvas.ScreenHeight);
+        
+        this.m_wire_struct = { position: vec2.fromValues(this.m_simple_canvas.ScreenWidth / 2, this.m_simple_canvas.ScreenHeight / 2), radius: 100 };
         this.m_floor = {position: vec3.fromValues(0,this.m_simple_canvas.ScreenHeight, 0), normal: vec3.fromValues(0, -1, 0)};
-        this.m_fliper_demo1 = { shape: new RoundRectStruct(10, 100, 10, 90, -0.1, 0.8), angular_velocity: 0.0001};
+        this.m_fliper_left = { shape: new RoundRectStruct(10, 500, 10, 90, Math.PI * -0.1, Math.PI * 0.1), angular_velocity: 10};
+        this.m_fliper_right = { shape: new RoundRectStruct(230, 500, 10, 90, Math.PI * -0.9, Math.PI * -1.1), angular_velocity: 10};
+
+        console.log(`Flipper left ${this.m_fliper_left.shape.sign}`);
+        console.log(`Flipper right ${this.m_fliper_right.shape.sign}`);
+
         this.m_input_handler = new InputHandler();
         this.m_input_handler.RegisterMovementEvent(null);
         console.log(`Canvas height ${this.m_simple_canvas.ScreenWidth}, width ${this.m_simple_canvas.ScreenHeight}`)
@@ -42,7 +52,10 @@ export default class PhysicsParticle {
             this.DrawSphere(this.m_simple_canvas.Context, this.m_particles[i].position, this.m_particles[i].radius);        
         }
         
-        this.m_canvas_helper.DrawRoundRect(this.m_fliper_demo1.shape);
+        this.m_canvas_helper.DrawRoundRect(this.m_fliper_left.shape);
+        this.m_canvas_helper.DrawRoundRect(this.m_fliper_right.shape);
+        this.m_canvas_helper.DrawWire(this.m_wire_struct.position, this.m_wire_struct.radius, 2);
+
         this.SimulateFlipper(this.m_input_handler.MovementDirection[0], this.m_input_handler.MovementDirection[1]);
 
         window.requestAnimationFrame(this.Render.bind(this));
@@ -54,7 +67,7 @@ export default class PhysicsParticle {
 
         context.beginPath();
         context.arc(x, y, radius, 0, 2 * Math.PI, false);
-        context.fillStyle = 'green';
+        context.fillStyle = 'red';
         context.fill();
     }
 
@@ -74,16 +87,43 @@ export default class PhysicsParticle {
 
         particle.position = vec2.add(particle.position, particle.position, particle.velocity);
 
+        particle = this.ProcessWireSolver(lastPosition, particle, this.m_wire_struct);
+
         //Collision Detection
         this.ProcessCollision(particle, lastPosition, lastVelocity);
     }
 
     private SimulateFlipper(left_flipper: number, right_flipper: number) {
-        let angle = this.m_fliper_demo1.shape.angle + (left_flipper * this.m_fliper_demo1.angular_velocity * this.TimeStamp);
-        angle = Clamp(angle, this.m_fliper_demo1.shape.max_angle, this.m_fliper_demo1.shape.rest_angle);
+        let left_angle = this.m_fliper_left.shape.angle + (left_flipper * this.m_fliper_left.angular_velocity * this.DeltaTime);
+            left_angle = Clamp(left_angle, this.m_fliper_left.shape.max_angle, this.m_fliper_left.shape.rest_angle);
 
-        this.m_fliper_demo1.shape.angle = angle;
+        let right_angle = this.m_fliper_right.shape.angle - (right_flipper * this.m_fliper_right.angular_velocity * this.DeltaTime);
+            right_angle = Clamp(right_angle, this.m_fliper_right.shape.rest_angle, this.m_fliper_right.shape.max_angle);
 
+        this.m_fliper_left.shape.angle = left_angle;
+        this.m_fliper_right.shape.angle = right_angle;
+    }
+
+    private ProcessWireSolver(lastParticlePosition: vec2, particle: Particle2DStruct, wire: WireStruct) {
+        let dist = vec2.distance(wire.position, particle.position);
+        
+        if (dist < wire.radius || isNaN(dist)) {
+            return particle;
+        }
+
+        let wireDist = dist - wire.radius; 
+        let diff = vec2.subtract(vec2.create(), wire.position, particle.position);
+        let normal = vec2.normalize(diff, diff);
+  
+        let move_offset = vec2.scale(vec2.create(), normal, wireDist);
+        particle.position = vec2.add(particle.position, particle.position, move_offset);
+
+        particle.velocity = vec2.subtract(vec2.create(), particle.position, lastParticlePosition);
+        particle.velocity[0] = particle.velocity[0];
+        particle.velocity[1] = particle.velocity[1];
+        
+
+        return particle;
     }
 
     private ProcessCollision(particle: Particle2DStruct, lastPosition: vec2, lastVelocity: vec2) {
