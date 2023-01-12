@@ -1,6 +1,7 @@
 import {SpaceColonization} from './SpaceColonization';
 import SimpleCanvas from "../Hsinpa/SimpleCanvas";
 import {CanvasHelper} from '../Canvas/CanvasHelper';
+import { Rect } from './SC_Types';
 
 export default class SC_Canvas {
 
@@ -11,10 +12,14 @@ export default class SC_Canvas {
     constructor(canvas_dom_query: string) {
         this.m_simple_canvas = new SimpleCanvas(canvas_dom_query);
         this.m_canvas_helper = new CanvasHelper(this.m_simple_canvas.Context);
-        this.m_space_colonization = new SpaceColonization(10, 10);
+        this.m_space_colonization = new SpaceColonization(50, 100);
 
-        this.m_space_colonization.spawn_attractor(this.m_simple_canvas.ScreenWidth, this.m_simple_canvas.ScreenHeight * 0.5, 40);
-        this.m_space_colonization.spawn_branch(this.m_simple_canvas.ScreenWidth * 0.5, this.m_simple_canvas.ScreenHeight)
+
+        let attractor_y = this.m_simple_canvas.ScreenHeight * 0.6;
+        let attractor_spawn_rect = new Rect(this.m_simple_canvas.ScreenWidth * 0.2, 0, this.m_simple_canvas.ScreenWidth * 0.6, attractor_y);
+
+        this.m_space_colonization.spawn_attractor(attractor_spawn_rect, 40);
+        this.m_space_colonization.spawn_free_branch(this.m_simple_canvas.ScreenWidth * 0.5, this.m_simple_canvas.ScreenHeight)
     }
 
     public render() {
@@ -38,7 +43,7 @@ export default class SC_Canvas {
 
             if (branch.parent == null) continue;
 
-            this.m_canvas_helper.DrawLine(branch.parent.postion, branch.postion, 1);
+            this.m_canvas_helper.DrawLine(branch.parent.position, branch.position, 1);
         }
     }
 }
