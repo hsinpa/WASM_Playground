@@ -38,7 +38,7 @@ export class SC_Branch {
     }
 
     public next() {
-        let next_vector = vec2.scale(vec2.create(), this.direction, 100);
+        let next_vector = vec2.scale(vec2.create(), this.direction, 10);
         let next_position = vec2.add(vec2.create(), this.position, next_vector);
         return new SC_Branch(next_position, this);
     }

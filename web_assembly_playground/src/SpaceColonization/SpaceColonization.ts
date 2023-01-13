@@ -57,8 +57,9 @@ export class SpaceColonization {
 
         let current_branch = root;
         let leaves_lens = this.m_leaves.length;
+        let max_trial = 50000;
 
-        while (this.m_branches.length < 10) {
+        while (this.m_branches.length < max_trial) {
 
             if (current_branch == null) break;
 
@@ -66,8 +67,6 @@ export class SpaceColonization {
             for (let i = 0; i < leaves_lens; i++) {
                 let leave = this.m_leaves[i];
                 let distance = vec2.distance( current_branch.position, leave.position);
-
-                console.log(distance);
 
                 if (distance < this.m_max_distance) {
                     if (!found) found =  true;      
@@ -109,9 +108,7 @@ export class SpaceColonization {
                     leaf.reached = true;
                     closestBranch = null;
                     break;
-                }
-
-                if (distance < record) {
+                } else if  (distance < record) {
                     closestBranch = branch;
                     record = distance;
                 }
@@ -119,32 +116,38 @@ export class SpaceColonization {
 
             if (closestBranch != null) {
                 let newDir = vec2.subtract(vec2.create(), leaf.position, closestBranch.position);
-                    newDir = vec2.normalize(newDir, newDir);
+                    vec2.normalize(newDir, newDir);
+
                 closestBranch.direction = vec2.add(closestBranch.direction,  closestBranch.direction, newDir);
+
+                closestBranch.count++;
             }
         }
 
+        let update_branch = 0;
         //Remove connect leaf
         for (let i = leave_lens - 1; i >= 0; i--) {
-            if (this.m_leaves[i].reached) {
-                this.m_leaves = this.m_leaves.splice(i, 1);
-           }
-        }
 
+            if (this.m_leaves[i].reached) {
+                update_branch++;
+                this.m_leaves.splice(i, 1);
+            }
+        }
 
         for (let i = branch_lens - 1; i >= 0; i--) {
             var branch = this.m_branches[i];
             if (branch.count > 0) {
-
                 let average_direction = branch.direction;
-                average_direction[0] = average_direction[0]  / (branch.count + 1);
-                average_direction[1] = average_direction[1]  / (branch.count + 1);
+                update_branch++;
 
-                branch.set_direction(branch.direction);
+                vec2.scale(average_direction, average_direction, 1 / (branch.count + 1));
+                
+                branch.set_direction(average_direction);
                 this.m_branches.push(branch.next());
                 branch.reset();
             }
         }
 
+        return update_branch;
     }
 }

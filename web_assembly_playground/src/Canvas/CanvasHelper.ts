@@ -95,4 +95,8 @@ export class CanvasHelper {
         
         this.m_ctx.lineWidth = 1;
     }
+
+    Clear(width: number, height: number) {
+        this.m_ctx.clearRect(0,0, width, height);
+    }
 }
