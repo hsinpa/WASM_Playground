@@ -19,7 +19,7 @@ export default class SC_Canvas {
         let attractor_y = this.m_simple_canvas.ScreenHeight * 0.5;
         let attractor_spawn_rect = new Rect(this.m_simple_canvas.ScreenWidth * 0.2, 0, this.m_simple_canvas.ScreenWidth * 0.6, attractor_y);
 
-        this.m_space_colonization.spawn_attractor(attractor_spawn_rect, 2000);
+        this.m_space_colonization.spawn_attractor(attractor_spawn_rect, 200);
         this.m_space_colonization.spawn_free_branch(this.m_simple_canvas.ScreenWidth * 0.5, this.m_simple_canvas.ScreenHeight);
 
 
@@ -34,7 +34,12 @@ export default class SC_Canvas {
     
         let update_branch_num = this.m_space_colonization.grow_branch();
 
-        if (update_branch_num == 0) return;
+        //console.log("Update Branch Num " + update_branch_num);
+
+        if (update_branch_num == 0) {
+            this.on_branch_spawn_completed();
+            return;
+        };
 
         window.requestAnimationFrame(this.render.bind(this));
     }
@@ -58,9 +63,17 @@ export default class SC_Canvas {
 
             if (branch.parent == null) continue;
 
-            this.m_canvas_helper.DrawLine(branch.parent.position, branch.position, 1);
+            this.m_canvas_helper.DrawLine(branch.parent.position, branch.position, branch.thickness);
         }
     }
 
+    private on_branch_spawn_completed() {
+        this.m_space_colonization.calculate_branch_width();
+
+        this.m_canvas_helper.Clear(this.m_simple_canvas.ScreenWidth, this.m_simple_canvas.ScreenHeight);
+
+        
+        this.draw_branch(this.m_space_colonization.Branches);
+    }
 
 }

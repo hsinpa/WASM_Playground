@@ -77,6 +77,14 @@ export class CanvasHelper {
     DrawLine(point_a : vec2, point_b : vec2, thickness: number) {
         this.m_ctx.lineWidth = thickness;
 
+        let endpoint_color = "orange";
+        let thin_branch_color = "green";
+
+        this.m_ctx.strokeStyle  = "black";
+
+        if (thickness < 15) this.m_ctx.strokeStyle = thin_branch_color;
+        if (thickness < 3) this.m_ctx.strokeStyle = endpoint_color;
+
         this.m_ctx.beginPath();
         this.m_ctx.moveTo(point_a[0], point_a[1]);
         this.m_ctx.lineTo(point_b[0], point_b[1]);
