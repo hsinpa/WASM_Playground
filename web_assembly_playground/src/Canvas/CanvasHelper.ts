@@ -38,6 +38,17 @@ export class RoundRectStruct {
     }
 }
 
+export interface ImageOption {
+    rotation?: number,
+    translation?: vec2,
+
+    base_scale: number,
+    target_scale: number,
+
+    dx: number, //Offset
+    dy : number,
+}
+
 export class CanvasHelper {
     private m_ctx: CanvasRenderingContext2D;
 
@@ -91,6 +102,26 @@ export class CanvasHelper {
         this.m_ctx.stroke();
     }
 
+    DrawImage(texture: HTMLImageElement, position: vec2, options: ImageOption) {
+        this.m_ctx.resetTransform();
+
+        if (options.translation != null) {
+            this.m_ctx.translate(options.translation[0], options.translation[1]);
+        }
+
+        if (options.rotation != null) {
+            this.m_ctx.rotate(options.rotation );
+
+            this.m_ctx.translate(-options.translation[0], -options.translation[1]);
+        }
+
+        this.m_ctx.drawImage(texture, position[0] + options.dx, position[1] + options.dy, 
+                            texture.width * options.base_scale * options.target_scale, 
+                            texture.height * options.base_scale * options.target_scale);
+       
+        this.m_ctx.resetTransform();
+    }
+
     DrawWire(position: vec2, radius: number, border: number ) {
         let x = position[0];
         let y = position[1];
@@ -105,6 +136,6 @@ export class CanvasHelper {
     }
 
     Clear(width: number, height: number) {
-        this.m_ctx.clearRect(0,0, width, height);
+        this.m_ctx.clearRect(0,0, width, height );
     }
 }

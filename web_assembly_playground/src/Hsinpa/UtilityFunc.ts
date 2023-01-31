@@ -10,3 +10,14 @@ export function RandomRange(min : number, max : number) {
 export function NormalizeToBase(value: number, min : number, max : number) {
     return (value - min) / (max - min);
 };
+
+export function GetImagePromise(imagePath : string) {
+    return new Promise<HTMLImageElement>( resolve => {
+        const im = new Image();
+        im.crossOrigin = "anonymous";
+        im.src = imagePath;
+        im.onload = () => resolve(Object.assign(im));
+
+        return im;
+    });
+}

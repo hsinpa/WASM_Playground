@@ -31,14 +31,10 @@ export class SpaceColonization {
         return this.m_branches;
     }
 
-    constructor(min_distance : number, max_distance : number, seed? : number) {
+    constructor(min_distance : number, max_distance : number, random_engine : Random) {
         this.m_min_distance = min_distance;
         this.m_max_distance = max_distance;
-
-        if (seed == undefined) {
-            this.m_rand_engine = new Random(MersenneTwister19937.autoSeed());
-        } else
-            this.m_rand_engine = new Random(MersenneTwister19937.seed(seed));
+        this.m_rand_engine = random_engine;
     } 
 
     public spawn_attractor(rect: Rect, spawn_length) {

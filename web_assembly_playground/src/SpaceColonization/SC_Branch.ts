@@ -4,7 +4,7 @@ import {Clamp, NormalizeToBase} from '../Hsinpa/UtilityFunc'
 
 const thickness_modifier = 0.6;
 
-enum BranchEnum { Endpoint_Branch,  Thin_Branch, Thick_Branch }
+export enum BranchEnum { Endpoint_Branch,  Thin_Branch, Thick_Branch }
 
 export interface BranchType {
     type : BranchEnum;
@@ -28,7 +28,7 @@ export class SC_Branch {
 
     public get thickness() { 
         let thickness = this.child_count * thickness_modifier;
-        thickness = Clamp(thickness, thickness, 1);
+        thickness = Clamp(thickness, thickness, 5);
         return thickness;
     }
 
